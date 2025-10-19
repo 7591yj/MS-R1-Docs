@@ -1,9 +1,35 @@
 # MS-R1-Docs
 
-## Docs and PlayBooks for Minisforum MS-R1
+Documentation and playbooks for the Minisforum MS-R1 — installation, configuration, and useful how-tos.
 
 
-### Index
-[BaseGuide](/PlayBook/MS-R1-BaseGuide.md)
-[How to Install PVE](/PlayBook/MS-R1-How-To-Install-PVE.md)
-[How To Run Android In Docker](/PlayBook/MS-R1-How-To-Run-Android-In-Docker.md)
+## Index (main guides)
+
+- [Base Guide](/PlayBook/MS-R1-BaseGuide.md) — Overview, hardware, BIOS/firmware tips
+- [How to Install PVE](/PlayBook/MS-R1-How-To-Install-PVE.md) — Proxmox VE installation and setup
+- [How To Run Android In Docker](/PlayBook/MS-R1-How-To-Run-Android-In-Docker.md) — Containerized Android walkthrough
+
+## Other language versions
+
+| Language | Link |
+| -------- | ---- |
+| Chinese  | [中文版](/PlayBook/Chinese/MS-R1-BaseGuide.md) |
+
+## Contributing
+
+- Fork the repo, create a branch, and open a PR.
+- Keep changes focused (fix, add an example, or translate).
+- Use clear headings and short sections; prefer code blocks for commands.
+- For doc fixes, reference the file path in your PR description.
+
+## Support & Issues
+
+Open an issue for bugs, missing steps, or platform-specific problems. Include:
+- OS / firmware version
+- The exact command and output (copy/paste)
+- Which guide you followed
+
+## License
+
+
+MIT License

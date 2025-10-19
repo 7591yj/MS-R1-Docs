@@ -1,78 +1,91 @@
 # How to install PVE into MS-R1
 
 ## Intro
-You can install PVE8.3 into MS-R1's Debian12 Systen
-Please ensure that the network cable is connected during installation and that there is no Internet connection.
+You can install PVE 8.3 into MS-R1's Debian 12 system.  
+Please ensure that the network cable is connected during installation. This guide assumes already have Internet connection is available.
 
 ## How To Install
+
 ### 1. Prepare your environment
-#### 1.1 Setting your root password
-PVE System needs root account to login web admin. You needs make sure your root password have already set.
+
+#### 1.1 Set the root password
+Every step in this playbook should have root permission.  
+Change to root user mode
+```bash
+sudo -i
+```
+Set root password
 ```bash
 passwd root
 ```
 
-#### 1.2 Install `sshd`, and make sure root can login.
+PVE needs the root account to log in to the web admin. Ensure the root password is set:
+```bash
+passwd root
+```
+
+
+#### 1.2 Install `sshd` and allow root login
 ```bash
 apt update
 apt install ssh
+# Allow root login (append, don't overwrite)
 echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+systemctl restart ssh
 ```
-
 
 ### 2. Add repo
-#### 2.1 Add PVE ARM community repo source.
+
+#### 2.1 Add PVE ARM community repo source
 ```bash
 curl -L https://mirrors.lierfang.com/pxcloud/lierfang.gpg -o /etc/apt/trusted.gpg.d/lierfang.gpg
-echo "deb https://mirrors.lierfang.com/pxcloud/pxvirt bookworm main">/etc/apt/sources.list.d/pxvirt-sources.list
+echo "deb https://mirrors.lierfang.com/pxcloud/pxvirt bookworm main" >/etc/apt/sources.list.d/pxvirt-sources.list
+apt update
 ```
 
-There are some other's community repo. You can choose your best speed server and replace it.
-```
-China: https://mirrors.lierfang.com
-Germany: https://de.mirrors.lierfang.com
-Cloudflare: https://mirrors.apqa.cn
-Netherlands: https://apt.dedi.zone/pxcloud/pxvirt
-Japan: https://mirrors.homelabproject.cc
-```
+There are other community mirrors; choose the fastest for you:
+- China: https://mirrors.lierfang.com
+- Germany: https://de.mirrors.lierfang.com
+- Cloudflare: https://mirrors.apqa.cn
+- Netherlands: https://apt.dedi.zone/pxcloud/pxvirt
+- Japan: https://mirrors.homelabproject.cc
 
-### 3. Configuring your Networking, Modify hosts for PVE
-!!! warning
-    1. All of IP Address "192.168.32.116" is a example.
-    2. You needs replace it to your own ip address.
+### 3. Configure networking and modify hosts for PVE
 
-#### 3.1 Modify hosts for PVE
-You needs add your ip and your hostname into /etc/hosts
-##### For example:
+> **Warning**
+> 1. All occurrences of the IP address `192.168.32.116` are examples.  
+> 2. Replace them with your own IP address.
 
-Using `ip addr show` to get your network card devices name and ip address
-Then Edit your /etc/hostsname file: `nano /etc/hosts`
-
+#### 3.1 Modify /etc/hosts for PVE
+Get your interface name and IP with `ip addr show`, then edit `/etc/hosts`:
 ```bash
-127.0.0.1       localhost
-192.168.32.116	mini-localhost
-127.0.1.1 mini-localhost
+nano /etc/hosts
 ```
-Make sure you added this line `192.168.32.116	mini-localhost`
+Example contents:
+```
+127.0.0.1       localhost
+192.168.32.116 mini-localhost
+127.0.1.1       mini-localhost
+```
+Make sure you added the line with your host IP and hostname (example: `192.168.32.116 mini-localhost`).
 
-192.168.32.116 is currently my ip address. You need repalce it by you internel networking ip.
+#### 3.2 Disable NetworkManager and use ifupdown2
+> **Note**
+> Change the network manager only to use the PVE network configuration. You can keep Debian's NetworkManager if you prefer, but network changes then must be done via the desktop network panel.
+>
+> **Warning**
+> If you don't understand this step, skip 3.2.
 
-#### 3.2 Disable NetworkManager and using ifupdown2
-!!!note
-    Change network manager just in order to maintain the official PVE network manager. You can manage the network in the PVE web management. 
-    You can keep Debian's NetworkManager. But if you want change networking setting, you needs go to Debian's desktop network manager panel.
-!!!warning
-    If you don't understand this step, please don't do step 3.2
-PVE using ifupdown2 configuration networking. You needs disable NetworkManager and enable ifupdown2
-
+PVE uses ifupdown2. Disable NetworkManager and install ifupdown2:
 ```bash
 systemctl disable NetworkManager
 systemctl stop NetworkManager
 apt update
 apt install ifupdown2 -y
-rm /etc/network/interfaces.new
+rm -f /etc/network/interfaces.new
 ```
-Check your currently networking information
+
+Check current networking:
 ```bash
 root@cix-localhost:~# ip addr show
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
@@ -106,7 +119,7 @@ Create networking config file. (Create virtual bridge let VMs can share host net
 ```bash
 nano /etc/network/interfaces
 ```
-Write these information
+Example contents:
 ```
 auto lo
 auto vmbr0
@@ -118,38 +131,30 @@ iface vmbr0 inet static
     bridge-fd 0
 ```
 
-Then reboot your system
+Reboot to apply changes.
 
-!!! warning
-    Then restart the machine to ensure the network is properly applied. If the network configuration is incorrect, it might cause installation interruption due to network disconnection, making the machine inaccessible remotely.
+> **Warning**
+> After this step the network is configured statically. Note the physical port used and avoid changing network wiring until you are sure of the configuration; incorrect network settings can make the machine inaccessible.
 
-!!! warning
-    After this step. You network setting have be config to Fixed configuration
-    You need remmember your port location and always use that port, before you manually change your network setting.
+### 4. Install PVE software
 
-
-### 4. Install PVE Software
-
-#### 4.1 Install PVE software package
+#### 4.1 Install PVE packages
 ```bash
-apt remove cix-openssl
+apt remove cix-openssl || true
 apt install rsyslog
 modprobe fuse
 apt update && apt install proxmox-ve
 ```
 
-!!!notice
-    1. Remember remove "cix-openssl" package.(Even sometime there is no this package)
-    2. Remember load module "fuse"
-    3. Configuring email: choose "no configration"
-    4. Configuring kexec-tools: choose "No"
+Notes:
+1. Remove `cix-openssl` if present.
+2. Load the `fuse` kernel module.
+3. When prompted: choose "no configuration" for email and "No" for kexec-tools if asked.
 
-
-
-#### 4.2 Add kernel module load service
-Make sure important kernel modules are added before network configuration
+#### 4.2 Add a service to load kernel modules before networking
+Create a systemd unit so required modules are loaded before network services:
 ```bash
-tee /etc/systemd/system/load-beforenet.service << EOF
+tee /etc/systemd/system/load-beforenet.service << 'EOF'
 [Unit]
 Description=Load Bridge Module
 DefaultDependencies=no
@@ -164,39 +169,40 @@ RemainAfterExit=true
 [Install]
 WantedBy=multi-user.target
 EOF
-```
-```bash
+
 systemctl enable load-beforenet.service
 systemctl start load-beforenet.service
 ```
 
-#### 4.3 If you do not need graphical interface you can disable it.
-
+#### 4.3 Disable graphical interface (optional)
+If you do not need a graphical desktop:
 ```bash
-systemctl set-default multi-user.target # disable graphical interface
-systemctl set-default graphical.target # enable graphical interface
+systemctl set-default multi-user.target   # disable graphical interface
+# To re-enable:
+# systemctl set-default graphical.target
 ```
 
 ### 5. Reboot and enjoy your PVE VMs system
+Reboot the host to ensure everything is applied:
+```bash
+reboot
+```
 
-!!!notice Tips 
-    Core "0-1,10-11" is big cores, core "6-9" is middle cores, core "2-5" is small cores.
-    Big core and middle cores are same architechture which is different from small cores.
-    VMs boot with mixed big core/moddle cores + small cores will cause cannot boot up.
-    So please remember setting `Core Affinity` after you finished create a new VM. 
+### 6. Notes and tips:
+- Core groups: cores "0-1,10-11" are big cores; "6-9" are middle cores; "2-5" are small cores. Mixing big/middle with small cores in a VM vCPU can cause boot problems — set core affinity after creating VMs.
+- Core frequency and OpenSSL AES-128-GCM scores (example):
 
-!!!notice Core Frequency
-    | Core Num |Architecture| Frequency | OpenSSL AES-128-GCM Score |
-    |----------|----------|----------|----------|
-    | 0  |Cortex-A720| 2.6Ghz | 2564396.37k |
-    | 1  |Cortex-A720| 2.6Ghz  | 2554669.74k  |
-    | 2  |Cortex-A520| 1.8Ghz | 564560.75k  |
-    | 3  |Cortex-A520| 1.8Ghz  | 564230.87k  |
-    | 4  |Cortex-A520| 1.8Ghz  | 566136.16k |
-    | 5  |Cortex-A520| 1.8Ghz  | 566869.85k  |
-    | 6  |Cortex-A720| 2.4Ghz  | 2258687.32k |
-    | 7  |Cortex-A720| 2.4Ghz  | 2254432.94k |
-    | 8 |Cortex-A720| 2.3Ghz  | 2154856.45k  |
-    | 9  |Cortex-A720| 2.3Ghz  | 2157428.74k  |
-    | 10  |Cortex-A720| 2.5Ghz  | 2451182.93k  |
-    | 11  |Cortex-A720| 2.5Ghz | 2451466.92k  |
+| Core Num | Architecture | Frequency | OpenSSL AES-128-GCM Score |
+|----------|--------------|-----------|---------------------------|
+| 0  | Cortex-A720 | 2.6 GHz | 2,564,396.37 k |
+| 1  | Cortex-A720 | 2.6 GHz | 2,554,669.74 k |
+| 2  | Cortex-A520 | 1.8 GHz | 564,560.75 k |
+| 3  | Cortex-A520 | 1.8 GHz | 564,230.87 k |
+| 4  | Cortex-A520 | 1.8 GHz | 566,136.16 k |
+| 5  | Cortex-A520 | 1.8 GHz | 566,869.85 k |
+| 6  | Cortex-A720 | 2.4 GHz | 2,258,687.32 k |
+| 7  | Cortex-A720 | 2.4 GHz | 2,254,432.94 k |
+| 8  | Cortex-A720 | 2.3 GHz | 2,154,856.45 k |
+| 9  | Cortex-A720 | 2.3 GHz | 2,157,428.74 k |
+| 10 | Cortex-A720 | 2.5 GHz | 2,451,182.93 k |
+| 11 | Cortex-A720 | 2.5 GHz | 2,451,466.92 k |
