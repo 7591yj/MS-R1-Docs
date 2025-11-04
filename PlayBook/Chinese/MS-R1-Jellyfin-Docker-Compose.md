@@ -6,7 +6,7 @@ MS-R1 基于 CIX CP8180（ARMv9，带 Arm Immortalis-G720 MC10 GPU），支持 A
 
 ## 前提条件
 - 已安装并配置好 Docker 与 docker-compose（可参考：How To Run Android In Docker 的“Prepare Docker environment for Android”章节）。
-- 已取得由厂方或项目方提供的预构建镜像文件（jellyfin-cix.tar.gz）与 docker-compose.yml。
+- 已取得由MINISFORUN/CIX提供的预构建镜像文件（jellyfin-cix.tar.gz）与 docker-compose.yml。
 
 ## 下载与文件说明
 
@@ -31,13 +31,13 @@ gunzip -c jellyfin-cix.tar.gz | docker load
 ### 3. 启动容器
 在包含 docker-compose.yml 的目录运行：
 ```bash
-docker compose up -d
+docker-compose up -d
 ```
 
 ## 故障排查
 - 如果出现类似错误：
   Error response from daemon: error gathering device information while adding custom device "/dev/video2": no such file or directory
-  - 说明 docker-compose.yml 中列出的某些设备在当前主机不存在。编辑 docker-compose.yml，移除或注释掉不存在的 /dev/* 设备项，然后重试 `docker compose up -d`。
+  - 说明 docker-compose.yml 中列出的某些设备在当前主机不存在。编辑 docker-compose.yml，移除或注释掉不存在的 /dev/* 设备项，然后重试 `docker-compose up -d`。
 - 若镜像加载失败，检查文件完整性与磁盘空间。
 
 ## 访问与媒体挂载
@@ -55,8 +55,5 @@ volumes:
 ```
 修改后重新运行：
 ```bash
-docker compose down
-docker compose up -d
+docker-compose up -d
 ```
-
-如需进一步规范 docker-compose.yml 或添加示例配置，告知我需要的设备与路径信息，我可帮你生成或修改文件。
