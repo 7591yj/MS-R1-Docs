@@ -16,12 +16,26 @@ CP8180 supported KVM which allows highly efficient virtualization. It's also sup
 - [How To Reinstall OS](/PlayBook/MS-R1-How-To-Reinstall-OS.md) — Reinstall OS
 - [How To Run Android Use Docker](../PlayBook/MS-R1-How-To-Run-Android-In-Docker.md)
 - [How To Run Jellyfin Use Docker](../PlayBook/MS-R1-Jellyfin-Docker-Compose.md)
+- [CPU Debug Commands](../PlayBook/MS-R1-DebugCommands.md)
+- [Optimize Idle Power](../PlayBook/MS-R1-IdlePower.md)
 
 ## Basic Information
 
 ### Default username / password
 - Username: `mini`
 - Password: `mini`
+
+### Disable small cores (optimize performance)
+
+Based on current tests, the small cores have much lower performance and internal interconnect bandwidth than the big/medium cores. Running multi-core workloads on the small cores can significantly reduce overall performance. Unless you need the extra cores for virtualization or similar workloads, it is recommended to disable the small cores for normal use.
+
+#### How to disable small cores
+1. Reboot and enter BIOS (press `Del` or `Esc` during boot).
+2. Go to `System Manager` → `SOC Configuration` → `CPU Configuration`.
+3. Disable CPU Core `2`, `3`, `4`, and `5`.
+4. Save changes and exit BIOS (usually `Save & Exit`), then reboot.
+
+Note: Re-enable the cores if you require additional CPU cores for VMs or other heavy multi-core tasks.  
 
 ### I/O Ports
 
