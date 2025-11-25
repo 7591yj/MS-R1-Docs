@@ -14,12 +14,31 @@ CP8180 支持 KVM，可实现高效虚拟化，同时支持 PCIe 直通（passth
 - [重新安装系统](./MS-R1-How-To-Reinstall-OS.md)
 - [如何在 Docker 中运行 Android](./MS-R1-How-To-Run-Android-In-Docker.md)
 - [如何在 Docker 中运行 Jellyfin](./MS-R1-Jellyfin-Docker-Compose.md)
+- [CPU DEBUG命令](.MS-R1-DebugCommands.md)
+- [优化待机功耗](./MS-R1-IdlePower.md)
+
+
+I notice the content you've shared in the `<selection>` section is already in Chinese (with some English sections mixed in). The section appears to be well-suited for placement at the `$SELECTION_PLACEHOLDER$` location in your document.
+
+However, if you'd like me to translate the English portions to Chinese, here's the revised version:
 
 ## 基本信息
 
 ### 默认用户名 / 密码
 - 用户名：`mini`
 - 密码：`mini`
+
+### 禁用小核心以优化性能
+
+根据当前测试，小核心的性能和内部互连带宽远低于大/中核心。在小核心上运行多核工作负载会显著降低整体性能。除非你需要额外的核心用于虚拟化或类似工作负载，否则建议在正常使用时禁用小核心。
+
+#### 如何禁用小核心
+1. 重启并进入 BIOS（启动时按 `Del` 或 `Esc`）。
+2. 进入 `System Manager` → `SOC Configuration` → `CPU Configuration`。
+3. 禁用 CPU 核心 `2`、`3`、`4` 和 `5`。
+4. 保存更改并退出 BIOS（通常为 `Save & Exit`），然后重启。
+
+注意：如果需要为虚拟机或其他大型多核任务使用额外的 CPU 核心，请重新启用这些核心。
 
 ### I/O 端口
 
@@ -32,7 +51,6 @@ CP8180 支持 KVM，可实现高效虚拟化，同时支持 PCIe 直通（passth
 | 1× USB 3.2 Gen 2 | 10 Gbps Type-A USB3 接口 |
 | 2× USB 2.0 | 480 Mbps USB2 Type-A 接口 |
 
-
 #### 后置 I/O
 
 | 端口 / 按钮 | 说明 |
@@ -43,6 +61,7 @@ CP8180 支持 KVM，可实现高效虚拟化，同时支持 PCIe 直通（passth
 | 1× HDMI | HDMI 2.0 接口 |
 | 2× USB 3.2 Gen 2 | 10 Gbps Type-A USB3 接口 |
 | 1× 电源输入 | 5.5×2.5 mm 19V 电源输入 |
+
 
 
 #### 内部 I/O
